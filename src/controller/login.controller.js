@@ -60,7 +60,7 @@ export const login = async (req, res) => {
 
     // Asegúrate de establecer correctamente las cookies
     res.cookie("token", token, {
-      httpOnly: true,  // Previene el acceso a la cookie desde JavaScript
+      httpOnly: false,  // Previene el acceso a la cookie desde JavaScript
       secure: process.env.NODE_ENV === "production",  // Solo en HTTPS en producción
       sameSite: "Strict", // Evita que se envíen cookies en solicitudes de otros sitios
       maxAge: 24 * 60 * 60 * 1000, // Expira en 1 día

@@ -1,3 +1,4 @@
+import { sendEmail } from "../libs/nodemailer.js";
 import Consulta from "../models/consulta.models.js";
 
 // Crear una nueva consulta
@@ -16,6 +17,10 @@ export const createConsulta = async (req, res) => {
     });
 
     const consultaGuardada = await nuevaConsulta.save();
+
+    const subject = `Nueva consulta de ${nombre} ${apellido}`;
+    const message = `Email: ${email}\nMensaje: ${consulta}`;
+    await sendEmail(subject, message);
 
     res.status(201).json({
       message: "Consulta creada exitosamente",
