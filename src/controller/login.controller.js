@@ -1,4 +1,3 @@
-/*LOGIN*/
 import Login from "../models/login.models.js";
 import bcrypt from "bcryptjs";
 import { createAccessToken } from "../libs/jwt.js";
@@ -21,10 +20,15 @@ export const register = async (req, res) => {
     });
     const loginSaved = await newLogin.save();
     const token = await createAccessToken({ id: loginSaved._id });
-    res.cookie("token", token);
-    // res.json({
-    //     message:"user creado correctamente"
-    // })
+
+    // Asegúrate de establecer correctamente las cookies
+    res.cookie("token", token, {
+      httpOnly: true,  // Previene el acceso a la cookie desde JavaScript
+      secure: process.env.NODE_ENV === "production",  // Solo en HTTPS en producción
+      sameSite: "Strict", // Evita que se envíen cookies en solicitudes de otros sitios
+      maxAge: 24 * 60 * 60 * 1000, // Expira en 1 día
+    });
+
     res.json({
       id: loginSaved._id,
       userName: loginSaved.userName,
@@ -54,10 +58,14 @@ export const login = async (req, res) => {
 
     const token = await createAccessToken({ id: loginFound._id });
 
-    res.cookie("token", token);
-    // res.json({
-    //     message:"user creado correctamente"
-    // })
+    // Asegúrate de establecer correctamente las cookies
+    res.cookie("token", token, {
+      httpOnly: true,  // Previene el acceso a la cookie desde JavaScript
+      secure: process.env.NODE_ENV === "production",  // Solo en HTTPS en producción
+      sameSite: "Strict", // Evita que se envíen cookies en solicitudes de otros sitios
+      maxAge: 24 * 60 * 60 * 1000, // Expira en 1 día
+    });
+
     res.json({
       id: loginFound._id,
       userName: loginFound.userName,
@@ -73,25 +81,20 @@ export const login = async (req, res) => {
   }
 };
 
+// Función para cerrar sesión (logout)
 export const logout = async (req, res) => {
-  res.cookie("token", "", {
-    expires: new Date(0),
-  });
-  return res.sendStatus(200);
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+    });
+    res.status(200).json({ message: "Sesión cerrada exitosamente" });
+  } catch (error) {
+    console.error("Error al cerrar sesión:", error);
+    res.status(500).json({
+      message: "Error al cerrar sesión",
+      error: error.message,
+    });
+  }
 };
-
-export const profile = async (req, res) => {
-  const loginFound = await Login.findById(req.user.id);
-
-  if (!loginFound)
-    return res.status(400).json({ message: "usuario no encontrado" });
-
-  return res.json({
-    id: loginFound._id,
-    userName: loginFound.userName,
-    email: loginFound.email,
-    createdAt: loginFound.createdAt,
-    updatedAt: loginFound.updatedAt,
-  });
-};
-
